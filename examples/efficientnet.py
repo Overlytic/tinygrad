@@ -5,6 +5,8 @@
 # https://github.com/lukemelas/EfficientNet-PyTorch/blob/master/efficientnet_pytorch/model.py
 import io
 import numpy as np
+import sys
+
 np.set_printoptions(suppress=True)
 
 from tinygrad.tensor import Tensor
@@ -118,7 +120,12 @@ if __name__ == "__main__":
 
   # load cat image and preprocess
   from PIL import Image
-  img = Image.open(io.BytesIO(fetch("https://c.files.bbci.co.uk/12A9B/production/_111434467_gettyimages-1143489763.jpg")))
+  if len(sys.argv) > 1:
+    url = sys.argv[1]
+  else:
+    url = "https://c.files.bbci.co.uk/12A9B/production/_111434467_gettyimages-1143489763.jpg"
+
+  img = Image.open(io.BytesIO(fetch(url)))
   img = img.resize((398, 224))
   img = np.array(img)
   img = img[:, 87:-87]
@@ -127,7 +134,7 @@ if __name__ == "__main__":
   img /= 256
   img -= np.array([0.485, 0.456, 0.406]).reshape((1,-1,1,1))
   img /= np.array([0.229, 0.224, 0.225]).reshape((1,-1,1,1))
-
+  
   # if you want to look at the cat
   """
   import matplotlib.pyplot as plt
@@ -145,4 +152,6 @@ if __name__ == "__main__":
   out = model.forward(Tensor(img))
   print("did inference in %.2f s" % (time.time()-st))
   print(np.argmax(out.data), np.max(out.data), lbls[np.argmax(out.data)])
+  # print('NOT ', np.argmin(out.data), np.min(out.data), lbls[np.argmin(out.data)])
+
 
