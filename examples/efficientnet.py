@@ -160,8 +160,10 @@ if __name__ == "__main__":
 
 
   # category labels
-  lbls = fetch("https://gist.githubusercontent.com/aaronpolhamus/964a4411c0906315deb9f4a3723aac57/raw/aa66dd9dbf6b56649fa3fab83659b2acbf3cbfd1/map_clsloc.txt")
-  lbls = dict([(int(x.split(" ")[1]), x.split(" ")[2]) for x in lbls.decode('utf-8').split("\n")])
+  import json
+  lbls_raw = fetch("https://raw.githubusercontent.com/lukemelas/EfficientNet-PyTorch/master/examples/simple/labels_map.txt")
+  lbls = json.loads(lbls_raw)
+  lbls = {int(k):v for k,v in lbls.items()}
 
   # run the net
   import time
