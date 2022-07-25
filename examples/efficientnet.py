@@ -39,7 +39,8 @@ class MBConvBlock:
     self._project_conv = Tensor.zeros(output_filters, oup, 1, 1)
     self._bn2 = BatchNorm2D(output_filters)
 
-  def __call__(self, x):
+  def __call__(self, inputs):
+    x = inputs
     if self._expand_conv:
       x = swish(self._bn0(x.conv2d(self._expand_conv)))
     x = x.pad2d(padding=(self.pad, self.pad, self.pad, self.pad))
@@ -53,7 +54,10 @@ class MBConvBlock:
     x = x.mul(x_squeezed.sigmoid())
 
     x = self._bn2(x.conv2d(self._project_conv))
-    return swish(x)
+    if x.shape == inputs.shape:
+      x = x.add(inputs)
+
+    return x
 
 class EfficientNet:
   def __init__(self):
@@ -88,9 +92,10 @@ class EfficientNet:
       print(x.shape)
       x = b(x)
     x = swish(self._bn1(x.conv2d(self._conv_head)))
-    x = x.avg_pool2d(kernel_size=x.shape[2:4]).reshape(shape=(-1, 1280))
+    x = x.avg_pool2d(kernel_size=x.shape[2:4])
+    x = x.reshape(shape=(-1, 1280))
     #x = x.dropout(0.2)
-    return swish(x.dot(self._fc).add(self._fc_bias))
+    return x.dot(self._fc).add(self._fc_bias)
 
   def load_weights_from_torch(self):
     # load b0
@@ -141,8 +146,8 @@ if __name__ == "__main__":
   img = img.astype(np.float32).reshape(1,3,224,224)
   img /= 256
 
-  #img -= np.array([0.485, 0.456, 0.406]).reshape((1,-1,1,1))
-  #img /= np.array([0.229, 0.224, 0.225]).reshape((1,-1,1,1))
+  img -= np.array([0.485, 0.456, 0.406]).reshape((1,-1,1,1))
+  img /= np.array([0.229, 0.224, 0.225]).reshape((1,-1,1,1))
  
   # img *= 1000
 
@@ -170,6 +175,7 @@ if __name__ == "__main__":
 
   # print (out.data[0])
 
-
-  plt.plot(out.data[0])
-  plt.show()
+  """if want to look at the output
+  # plt.plot(out.data[0])
+  # plt.show()
+  """
