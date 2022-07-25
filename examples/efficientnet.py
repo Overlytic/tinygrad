@@ -126,21 +126,33 @@ if __name__ == "__main__":
     url = "https://c.files.bbci.co.uk/12A9B/production/_111434467_gettyimages-1143489763.jpg"
 
   img = Image.open(io.BytesIO(fetch(url)))
-  img = img.resize((398, 224))
+
+  print(img.size)
+
+  aspect_ratio = img.size[0] / img.size[1]
+  new_height = 224
+  new_width = int(aspect_ratio * 224)
+
+  img = img.resize((new_width, new_height))
   img = np.array(img)
-  img = img[:, 87:-87]
+  crop = (new_width - 224) // 2
+  img = img[:, crop:-crop]
   img = np.moveaxis(img, [2,0,1], [0,1,2])
   img = img.astype(np.float32).reshape(1,3,224,224)
   img /= 256
-  img -= np.array([0.485, 0.456, 0.406]).reshape((1,-1,1,1))
-  img /= np.array([0.229, 0.224, 0.225]).reshape((1,-1,1,1))
-  
-  # if you want to look at the cat
+
+  #img -= np.array([0.485, 0.456, 0.406]).reshape((1,-1,1,1))
+  #img /= np.array([0.229, 0.224, 0.225]).reshape((1,-1,1,1))
+ 
+  # img *= 1000
+
   """
+  # if you want to look at the cat
   import matplotlib.pyplot as plt
   plt.imshow(img[0].mean(axis=0))
   plt.show()
   """
+
 
   # category labels
   lbls = fetch("https://gist.githubusercontent.com/aaronpolhamus/964a4411c0906315deb9f4a3723aac57/raw/aa66dd9dbf6b56649fa3fab83659b2acbf3cbfd1/map_clsloc.txt")
@@ -154,4 +166,10 @@ if __name__ == "__main__":
   print(np.argmax(out.data), np.max(out.data), lbls[np.argmax(out.data)])
   # print('NOT ', np.argmin(out.data), np.min(out.data), lbls[np.argmin(out.data)])
 
+  import matplotlib.pyplot as plt
 
+  # print (out.data[0])
+
+
+  plt.plot(out.data[0])
+  plt.show()
